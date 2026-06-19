@@ -77,17 +77,92 @@ export default function Hero({ onSearch, onExploreCatalog }: HeroProps) {
       onMouseLeave={() => setSectionHover(false)}
       className="relative min-h-screen w-full bg-[#F4F6FA] pt-32 pb-24 overflow-hidden"
     >
-      {/* Background Soft Gradients (matches Quiety's colorful atmospheric ambient touch) */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Soft centered purple/pink glow exactly like the screenshot */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[60rem] h-[30rem] bg-gradient-to-r from-primary-light/40 via-brand-indigo/10 to-transparent rounded-full blur-[140px]" />
-        
-        {/* Soft golden particle floating in top-left */}
-        <div className="absolute top-32 left-10 text-primary opacity-80 animate-pulse hidden md:block">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <path d="M20 0L24 16L40 20L24 24L20 40L16 24L0 20L16 16L20 0Z" fill="currentColor" opacity="0.3" />
+      {/* Background Highly Sophisticated Fluid Loop Motion system */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
+        {/* Radial mesh screen lines to anchor style */}
+        <div className="absolute inset-0 bg-[radial-gradient(#E2E8F0_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40 mix-blend-multiply" />
+
+        {/* Fluid Orb 1 - Coral-Orange/Primary Ambient Liquid Blob */}
+        <motion.div
+          className="absolute -top-20 left-[10%] w-[45rem] h-[45rem] rounded-full bg-gradient-to-br from-primary/25 via-primary-light/15 to-transparent blur-[110px]"
+          animate={{
+            x: [0, 70, -40, 0],
+            y: [0, -60, 50, 0],
+            scale: [1, 1.12, 0.95, 1],
+            rotate: [0, 120, 240, 360],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Fluid Orb 2 - Indigo/Purple Deep Atmospheric Bloom */}
+        <motion.div
+          className="absolute top-[10%] right-[10%] w-[50rem] h-[50rem] rounded-full bg-gradient-to-tr from-[#818CF8]/20 via-primary-light/10 to-transparent blur-[130px]"
+          animate={{
+            x: [0, -80, 50, 0],
+            y: [0, 70, -40, 0],
+            scale: [1, 1.18, 0.9, 1],
+            rotate: [360, 240, 120, 0],
+          }}
+          transition={{
+            duration: 26,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Fluid Orb 3 - Gentle Brightening Warm Glow (Pulsating and shifting) */}
+        <motion.div
+          className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[35rem] h-[35rem] rounded-full bg-gradient-to-r from-amber-400/12 via-[#FF9F1C]/5 to-transparent blur-[95px]"
+          animate={{
+            x: [-30, 40, -20, -30],
+            y: [40, -30, 20, 40],
+            scale: [0.95, 1.08, 0.92, 0.95],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Floating golden particle vector decorations doing subtle drift loops */}
+        <motion.div 
+          className="absolute top-36 left-[8%] text-primary opacity-60 hidden md:block"
+          animate={{
+            y: [0, -18, 0],
+            rotate: [0, 45, 0],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <svg width="34" height="34" viewBox="0 0 40 40" fill="none">
+            <path d="M20 0L24 16L40 20L24 24L20 40L16 24L0 20L16 16L20 0Z" fill="currentColor" />
           </svg>
-        </div>
+        </motion.div>
+
+        <motion.div 
+          className="absolute top-1/2 right-[6%] text-[#818CF8] opacity-50 hidden md:block"
+          animate={{
+            y: [0, 22, 0],
+            rotate: [0, -35, 0],
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+            <path d="M20 0L24 16L40 20L24 24L20 40L16 24L0 20L16 16L20 0Z" fill="currentColor" />
+          </svg>
+        </motion.div>
       </div>
 
       {/* Dynamic Cursor-Responsive Ambient Spotlight Bloom */}
@@ -105,23 +180,55 @@ export default function Hero({ onSearch, onExploreCatalog }: HeroProps) {
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 text-center flex flex-col items-center">
         {/* Title Block exactly mirroring Quiety styling */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-4xl space-y-6"
         >
           <h1 className="font-sans text-brand-blue text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] !font-sans">
-            Modernizing the_Job <br />
+            <motion.span 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="inline-block"
+            >
+              Modernizing
+            </motion.span>{" "}
+            <motion.span 
+              initial={{ opacity: 0, y: 15 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.25, duration: 0.6 }}
+              className="inline-block text-primary"
+            >
+              the_Job
+            </motion.span> <br />
             <span className="relative inline-block text-brand-blue">
-              Search Experience
+              <motion.span
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.7 }}
+                className="inline-block"
+              >
+                Search Experience
+              </motion.span>
               {/* Custom Underline Brush vector to mimic the underlined logo accent */}
-              <span className="absolute bottom-1 left-0 right-0 h-[4px] bg-primary rounded-full opacity-80" />
+              <motion.span 
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ delay: 0.7, duration: 0.8, ease: "easeInOut" }}
+                className="absolute bottom-1 left-0 right-0 h-[4px] bg-primary rounded-full opacity-80" 
+              />
             </span>
           </h1>
 
-          <p className="font-sans text-neutral-500 text-sm sm:text-base md:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.6 }}
+            className="font-sans text-neutral-500 text-sm sm:text-base md:text-lg font-medium max-w-2xl mx-auto leading-relaxed"
+          >
             Connecting brilliant digital pioneers, deep developers, and product creatives with top-tier modern workspaces. Smooth. Vested. Infinite potential.
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* Quiety Styled Rounded Pill Search Form */}
