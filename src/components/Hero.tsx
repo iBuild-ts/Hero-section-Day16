@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Search, ChevronDown, Award, Users, Star, BookOpen, Layers } from 'lucide-react';
+import heroCharacter from '../assets/images/quiety_hero_character_1781834946907.jpg';
 
 interface HeroProps {
   onSearch: (term: string, sector: string) => void;
@@ -332,7 +333,7 @@ export default function Hero({ onSearch, onExploreCatalog }: HeroProps) {
             <div className="absolute inset-10 rounded-full bg-gradient-to-tr from-primary-light to-brand-indigo/10 blur-3xl opacity-65 -z-10 animate-pulse" />
             
             <motion.img
-              src="/src/assets/images/quiety_hero_character_1781834946907.jpg"
+              src={heroCharacter}
               alt="Quiety Developer Character Illustration"
               referrerPolicy="no-referrer"
               className="w-full h-full object-contain pointer-events-none drop-shadow-[0_20px_45px_rgba(15,23,42,0.12)]"

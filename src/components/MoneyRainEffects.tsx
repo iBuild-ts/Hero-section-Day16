@@ -22,22 +22,16 @@ interface PreloaderProps {
   onEnter: () => void;
 }
 
-// -------------------------------------------------------------
-// Interactive 3D Raining Money Preloader with Automated Top/Bottom Unzip
-// -------------------------------------------------------------
 export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
   const [particles, setParticles] = useState<MoneyParticle[]>([]);
   const [isUnzipping, setIsUnzipping] = useState(false);
   const [unzipProgress, setUnzipProgress] = useState(0);
 
-  // sound generator play function
   const playZipSound = () => {
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
       const ctx = new AudioContext();
-      
-      // Sweep frequency to simulate zipper teeth sliding open fast
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
@@ -58,15 +52,13 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
 
   useEffect(() => {
     // Populate rich 3D money blocks
-    // Including giant, extreme-foreground bills for easy user selection
     const items: MoneyParticle[] = Array.from({ length: 42 }).map((_, i) => {
-      // Set every 5th item as extreme-3D "big money" close to the camera lens
       const isBigMoney = i % 5 === 0;
       return {
         id: i,
         x: Math.random() * 92 + 4,
         y: Math.random() * 100 - 10,
-        z: isBigMoney ? Math.random() * 200 + 150 : Math.random() * -100, // positive Z is closer
+        z: isBigMoney ? Math.random() * 200 + 150 : Math.random() * -100,
         rotationX: Math.random() * 360,
         rotationY: Math.random() * 360,
         rotationZ: Math.random() * 360,
@@ -86,7 +78,6 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
       time += 0.012;
       setParticles((prev) =>
         prev.map((p) => {
-          // Slow passive falling physics with beautiful 3D leaf-swinging motion
           const nextY = p.y + p.speed * 0.35;
           const nextRotX = p.rotationX + Math.sin(time * p.swingSpeed + p.phase) * 1.5;
           const nextRotY = p.rotationY + Math.cos(time * p.swingSpeed + p.phase) * 1.2;
@@ -108,19 +99,17 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
     return () => cancelAnimationFrame(frameId);
   }, []);
 
-  // When clicking any money piece, trigger the automatic 3D unzip portal!
   const triggerAutomaticUnzip = () => {
     if (isUnzipping) return;
     setIsUnzipping(true);
     playZipSound();
 
-    // Smoothly animate the unzip slide separation progress
     let start = 0;
     const interval = setInterval(() => {
       start += 2.5;
       if (start >= 100) {
         clearInterval(interval);
-        onEnter(); // Fire entry
+        onEnter();
       }
       setUnzipProgress(start);
     }, 16);
@@ -140,7 +129,6 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
           transformStyle: 'preserve-3d'
         }}
       >
-        {/* Symmetrical Center Zipper Gold Teeth */}
         <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-90 shadow-lg flex justify-between" />
       </div>
 
@@ -152,7 +140,6 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
           transformStyle: 'preserve-3d'
         }}
       >
-        {/* Symmetrical Center Zipper Gold Teeth */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-90 shadow-lg" />
       </div>
 
@@ -166,7 +153,6 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
             <div
               key={p.id}
               onClick={(e) => {
-                // Ensure individual items can also trigger or propagate safely
                 e.stopPropagation();
                 triggerAutomaticUnzip();
               }}
@@ -181,7 +167,6 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
             >
               {p.type === 'hundred' && (
                 <div className="relative w-36 h-16 bg-emerald-600/90 border-2 border-emerald-300/60 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex flex-col justify-between p-1.5 text-emerald-100 hover:brightness-125 hover:border-emerald-200 transition-all duration-200 hover:shadow-cyan-400/20 hover:shadow-2xl">
-                  {/* Banknote design detail */}
                   <div className="flex justify-between items-center text-[7px] font-mono tracking-widest text-emerald-300 uppercase font-extrabold">
                     <span>QUIETY BANK</span>
                     <span>$100</span>
@@ -199,13 +184,13 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
               )}
 
               {p.type === 'thousand' && (
-                <div className="relative w-40 h-18 bg-brand-blue/90 border-2 border-primary/50 rounded-lg shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex flex-col justify-between p-2 text-primary-light hover:brightness-125 hover:border-primary transition-all duration-200 hover:shadow-primary/30 hover:shadow-2xl">
+                <div className="relative w-40 h-18 bg-neutral-900/90 border-2 border-primary/50 rounded-lg shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex flex-col justify-between p-2 text-white hover:brightness-125 hover:border-primary transition-all duration-200 hover:shadow-primary/30 hover:shadow-2xl">
                   <div className="flex justify-between items-center text-[7px] font-mono tracking-widest text-primary font-extrabold">
                     <span>SOVEREIGN STAKE</span>
                     <span>$1000</span>
                   </div>
                   <div className="flex items-center justify-center">
-                    <div className="w-7 h-7 rounded bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded bg-primary/20 text-primary flex items-center justify-center font-bold text-xs animate-bounce">
                       $
                     </div>
                   </div>
@@ -231,31 +216,38 @@ export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
   );
 }
 
-// -------------------------------------------------------------
-// Interactive Scroll-Parallax Falling Money Overlay Component for Landing Top
-// -------------------------------------------------------------
 export function ScrollMoneyParallax() {
   const [scrollY, setScrollY] = useState(0);
-  const [windowWidth, setWindowWidth] = useState(1200);
 
   useEffect(() => {
-    // Sync viewport scroll properties
+    let ticking = false;
+    let lastKnownScrollPosition = 0;
+
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      lastKnownScrollPosition = window.scrollY;
+
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (lastKnownScrollPosition > 600) {
+            setScrollY(650);
+          } else {
+            setScrollY(lastKnownScrollPosition);
+          }
+          ticking = false;
+        });
+
+        ticking = true;
+      }
     };
-    
-    setWindowWidth(window.innerWidth);
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Only render if within scroll range at the top
   if (scrollY > 550) return null;
 
-  // Calculate fading opacity ratio as you scroll away from top
   const opacity = Math.max(0, 1 - scrollY / 420);
 
-  // Parallax money blocks
   const parallaxNodes = [
     { id: 101, left: 5, bg: 'emerald', initialY: 60, speed: 0.95, scale: 0.9 },
     { id: 102, left: 16, bg: 'coin', initialY: 150, speed: 0.65, scale: 1.1 },
@@ -271,7 +263,6 @@ export function ScrollMoneyParallax() {
       style={{ opacity }}
     >
       {parallaxNodes.map((node) => {
-        // Calculate dynamic vertical coordinate containing normal screen coordinate plus scrolling offset
         const dynamicY = node.initialY - scrollY * node.speed;
         const driftRotation = (scrollY * 0.12) * (node.id % 2 === 0 ? 1 : -1);
 
@@ -300,7 +291,7 @@ export function ScrollMoneyParallax() {
                 $
               </div>
             ) : (
-              <div className="w-32 h-14 bg-brand-blue/30 border border-primary/20 rounded shadow-md flex flex-col justify-between p-1 text-[7px] text-primary opacity-70">
+              <div className="w-32 h-14 bg-neutral-900/30 border border-primary/20 rounded shadow-md flex flex-col justify-between p-1 text-[7px] text-primary opacity-70">
                 <div className="flex justify-between font-bold">
                   <span>DIVIDEND</span>
                   <span>1000</span>

@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import JobCatalog from './components/JobCatalog';
 import Timeline from './components/Timeline';
+import VideoTour from './components/VideoTour';
 import AdvisoryForm from './components/AdvisoryForm';
 import Footer from './components/Footer';
 import ClubChamber from './components/ClubChamber';
@@ -14,6 +15,9 @@ import { MoneyRainPreloader, ScrollMoneyParallax } from './components/MoneyRainE
 export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [clubChamberOpen, setClubChamberOpen] = useState(false);
+  
+  // High fidelity preloader state
+  const [isPreloaderActive, setIsPreloaderActive] = useState(true);
   
   // Ambient customizer preferences
   const [ambientOpacity, setAmbientOpacity] = useState(0.4);
@@ -28,35 +32,31 @@ export default function App() {
   // Application model
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  // High fidelity preloader and portfolio bag lock states
-  const [isPreloaderActive, setIsPreloaderActive] = useState(true);
-
-  // Active section scroll tracking & auto-preloader transition on top scroll
+  // Active section scroll tracking
   useEffect(() => {
-    let lastScrollY = window.scrollY;
+    let ticking = false;
 
     const handleScroll = () => {
-      const scrollPos = window.scrollY + 200;
-      const sections = ['hero', 'catalog', 'methodology', 'advisory'];
-      
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveSection(section);
-            break;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollPos = window.scrollY + 200;
+          const sections = ['hero', 'catalog', 'methodology', 'advisory'];
+          
+          for (const section of sections) {
+            const el = document.getElementById(section);
+            if (el) {
+              const top = el.offsetTop;
+              const height = el.offsetHeight;
+              if (scrollPos >= top && scrollPos < top + height) {
+                setActiveSection(section);
+                break;
+              }
+            }
           }
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
-
-      // If user scrolls back up to the absolute top, seamlessly re-engage preloader
-      if (window.scrollY === 0 && lastScrollY > 10) {
-        setIsPreloaderActive(true);
-      }
-
-      lastScrollY = window.scrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -119,7 +119,7 @@ export default function App() {
       
       {/* Scroll Parallax Money Effect */}
       <ScrollMoneyParallax />
-
+      
       {/* Soft atmospheric gradient glow */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 transition-all duration-1000 opacity-55"
@@ -156,6 +156,9 @@ export default function App() {
         overrideSearchTerm={overrideSearchTerm}
         overrideCategory={overrideCategory}
       />
+
+      {/* Interactive Platform Explainer Tour Video */}
+      <VideoTour />
 
       {/* Our Methodology Step Timeline */}
       <Timeline />
