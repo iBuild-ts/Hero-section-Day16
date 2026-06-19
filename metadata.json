@@ -1,0 +1,8 @@
+{
+  "name": "AURA Elite Recruitment",
+  "description": "A high-end, 8K-fidelity visual experience for elite executive matchmaking and bespoke placement services.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-primary: #C5A059;     /* Elite Aurelian Gold */
+  --color-primary-dark: #a38141;
+  --color-primary-light: #e5cd9e;
+  --color-sand: #fbfaf7;
+}
+
+/* Custom visual utilities to elevate 8K visual fidelity */
+@layer utilities {
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #f3e2c3 0%, #C5A059 50%, #89692e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, #f3e2c3 0%, #C5A059 50%, #89692e 100%);
+  }
+
+  .atmosphere {
+    background: radial-gradient(circle at 70% 30%, #1a1a1a 0%, transparent 60%), radial-gradient(circle at 20% 80%, #0d0d0d 0%, transparent 50%);
+  }
+  
+  .glass-card {
+    background: rgba(10, 10, 10, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card-light {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .glass-card-hover {
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .glass-card-hover:hover {
+    background: rgba(20, 20, 20, 0.8);
+    border-color: rgba(197, 160, 89, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(197, 160, 89, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .text-shadow-subtle {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Base style fine-tuning for high fidelity output */
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, "Plus Jakarta Sans", sans-serif;
+  background-color: #050505;
+  color: #f0f0f0;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar to keep it incredibly neat and minimalist */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C5A059;
+}
+
