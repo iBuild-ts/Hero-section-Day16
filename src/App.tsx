@@ -8,26 +8,30 @@ import AdvisoryForm from './components/AdvisoryForm';
 import Footer from './components/Footer';
 import ClubChamber from './components/ClubChamber';
 import ApplicationForm from './components/ApplicationForm';
-import { Sparkles, ArrowDown, Lock, Check } from 'lucide-react';
+import { Sparkles, ArrowDown, Lock, Check, ShieldCheck } from 'lucide-react';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [clubChamberOpen, setClubChamberOpen] = useState(false);
   
-  // Ambient preferences
+  // Ambient customizer preferences
   const [ambientOpacity, setAmbientOpacity] = useState(0.4);
-  const [selectedHQ, setSelectedHQ] = useState('Zürich');
+  const [selectedHQ, setSelectedHQ] = useState('Zurich Office');
   const [visualTheme, setVisualTheme] = useState('obsidian');
   const [mockMusicPlaying, setMockMusicPlaying] = useState(false);
+
+  // Synchronized search criteria
+  const [overrideSearchTerm, setOverrideSearchTerm] = useState('');
+  const [overrideCategory, setOverrideCategory] = useState('all');
 
   // Application model
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  // Track scroll position to update active section in header
+  // Active section scroll tracking
   useEffect(() => {
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200;
-      const sections = ['hero', 'catalog', 'methodology', 'advisory', 'trust'];
+      const sections = ['hero', 'catalog', 'methodology', 'advisory'];
       
       for (const section of sections) {
         const el = document.getElementById(section);
@@ -46,142 +50,132 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Update body styles programmatically mapping to the premium visual themes selected in ClubChamber
+  // Update brand colors based on the customizer theme chosen in our sidebar
   useEffect(() => {
     const root = document.documentElement;
     if (visualTheme === 'obsidian') {
-      root.style.setProperty('--color-primary', '#C5A059');
-      root.style.setProperty('--color-primary-dark', '#a38141');
-      root.style.setProperty('--color-primary-light', '#f3e2c3');
+      // Quiety Premium Orange
+      root.style.setProperty('--color-primary', '#FF5E36');
+      root.style.setProperty('--color-primary-dark', '#D9441E');
+      root.style.setProperty('--color-primary-light', '#FFEFEA');
     } else if (visualTheme === 'champagne') {
-      root.style.setProperty('--color-primary', '#E5C384');
-      root.style.setProperty('--color-primary-dark', '#a8813f');
-      root.style.setProperty('--color-primary-light', '#fdfaf2');
+      // Warm Premium Amber Gold
+      root.style.setProperty('--color-primary', '#D97706');
+      root.style.setProperty('--color-primary-dark', '#B45309');
+      root.style.setProperty('--color-primary-light', '#FEF3C7');
     } else if (visualTheme === 'platinum') {
-      root.style.setProperty('--color-primary', '#D1D5DB');
-      root.style.setProperty('--color-primary-dark', '#4B5563');
-      root.style.setProperty('--color-primary-light', '#F9FAFB');
+      // Minimal Stark Slate
+      root.style.setProperty('--color-primary', '#334155');
+      root.style.setProperty('--color-primary-dark', '#0F172A');
+      root.style.setProperty('--color-primary-light', '#F1F5F9');
     } else if (visualTheme === 'emerald') {
+      // Sovereign Emerald Green
       root.style.setProperty('--color-primary', '#10B981');
-      root.style.setProperty('--color-primary-dark', '#065F46');
+      root.style.setProperty('--color-primary-dark', '#047857');
       root.style.setProperty('--color-primary-light', '#ECFDF5');
     }
   }, [visualTheme]);
 
-  // Smooth scroll helper
-  const handleScrollToElement = (id: string) => {
-    setActiveSection(id);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleHeroSearch = (term: string, category: string) => {
+    setOverrideSearchTerm(term);
+    setOverrideCategory(category);
+  };
+
+  // Interactive Match Simulator callback from side panel
+  const handleFilterFromSkills = (skills: string[]) => {
+    if (skills.length === 0) {
+      setOverrideSearchTerm('');
+      setOverrideCategory('all');
+    } else {
+      // Trigger search based on selected skills
+      const query = skills.join(' ');
+      setOverrideSearchTerm(query);
     }
   };
 
   return (
-    <div className="relative min-h-screen selection:bg-primary selection:text-black">
+    <div className="relative min-h-screen bg-[#F8FAF1] selection:bg-primary selection:text-white transition-colors duration-500">
       
-      {/* Dynamic ambient color glow filter behind everything, changes depending on the curating theme */}
+      {/* Soft atmospheric gradient glow */}
       <div 
-        className="fixed inset-0 pointer-events-none z-0 transition-all duration-1000 opacity-60"
+        className="fixed inset-0 pointer-events-none z-0 transition-all duration-1000 opacity-55"
         style={{
           background: visualTheme === 'emerald'
-            ? 'radial-gradient(circle at 50% 30%, rgba(16, 185, 129, 0.03) 0%, transparent 60%)'
+            ? 'radial-gradient(circle at 50% 25%, rgba(16, 185, 129, 0.04) 0%, transparent 60%)'
             : visualTheme === 'platinum'
-              ? 'radial-gradient(circle at 50% 30%, rgba(209, 213, 219, 0.02) 0%, transparent 50%)'
+              ? 'radial-gradient(circle at 50% 25%, rgba(51, 65, 85, 0.04) 0%, transparent 60%)'
               : visualTheme === 'champagne'
-                ? 'radial-gradient(circle at 50% 30%, rgba(229, 195, 132, 0.04) 0%, transparent 60%)'
-                : 'radial-gradient(circle at 50% 30%, rgba(197, 160, 89, 0.03) 0%, transparent 50%)'
+                ? 'radial-gradient(circle at 50% 25%, rgba(217, 119, 6, 0.04) 0%, transparent 60%)'
+                : 'radial-gradient(circle at 50% 25%, rgba(255, 94, 54, 0.04) 0%, transparent 60%)'
         }}
       />
 
-      {/* Elite Header */}
+      {/* Primary Fixed Header */}
       <Header 
         activeSection={activeSection}
         setActiveSection={setActiveSection}
         onOpenClubRoom={() => setClubChamberOpen(true)}
       />
 
-      {/* Premium Video Hero */}
-      <div style={{ '--video-opacity': ambientOpacity } as React.CSSProperties}>
-        <Hero 
-          onExploreCatalog={() => handleScrollToElement('catalog')}
-          onInitiateAdvisory={() => handleScrollToElement('advisory')}
-        />
-      </div>
-
-      {/* Trust & Prestige Credentials Strip (Bento-style Elite Achievements) */}
-      <section className="bg-black py-16 border-y border-white/5 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-          <div className="space-y-2 border-l-2 border-primary pl-5">
-            <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block">Governance Trust Index</span>
-            <div className="font-serif text-3xl text-white font-medium tracking-tight">Vetted Secrecy Tier-1</div>
-            <p className="font-sans text-xs text-neutral-400 font-light leading-relaxed">
-              Every strategic profile file undergoes physical validation inside secure isolated compartments in Switzerland, preventing information tracing.
-            </p>
-          </div>
-
-          <div className="space-y-2 border-l-2 border-primary pl-5">
-            <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block">Institutional Asset Alignment</span>
-            <div className="font-serif text-3xl text-white font-medium tracking-tight">Sovereign Asset Backing</div>
-            <p className="font-sans text-xs text-neutral-400 font-light leading-relaxed">
-              Serving premium corporations representing more than $24 Billion in global aggregate computational, luxury heritage, and private wealth capital assets.
-            </p>
-          </div>
-
-          <div className="space-y-2 border-l-2 border-primary pl-5">
-            <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block">Bespoke Strategic Delivery</span>
-            <div className="font-serif text-3xl text-white font-medium tracking-tight">1:1 Concierge Care</div>
-            <p className="font-sans text-xs text-neutral-400 font-light leading-relaxed">
-              Candidates matched with elite partners are offered integrated global wealth structure advisory, VIP relocation management, and personal biological health concierge coverage.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Global Interactive Catalog */}
-      <JobCatalog 
-        onApplyForJob={(job) => setSelectedJob(job)}
+      {/* Main Hero Component */}
+      <Hero 
+        onSearch={handleHeroSearch}
+        onExploreCatalog={() => {
+          const el = document.getElementById('catalog');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
       />
 
-      {/* Timeline Methodology Protocol */}
+      {/* Premium Positions Catalog */}
+      <JobCatalog 
+        onApplyForJob={(job) => setSelectedJob(job)}
+        overrideSearchTerm={overrideSearchTerm}
+        overrideCategory={overrideCategory}
+      />
+
+      {/* Our Methodology Step Timeline */}
       <Timeline />
 
-      {/* Secure Advisory Mandate Registry */}
+      {/* Partner Advisory Corporate Intake Form */}
       <AdvisoryForm />
 
-      {/* Refined Elite Secrecy Compliance & Mission Statement block */}
-      <section className="py-24 bg-black border-t border-white/5 relative overflow-hidden">
+      {/* Sovereign Trust & Security Standards Strip */}
+      <section className="py-24 bg-white border-t border-neutral-100 relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-8 relative z-10">
-          <div className="inline-flex p-3 rounded-full bg-primary/5 border border-primary/20 text-primary">
+          <div className="inline-flex p-3.5 rounded-2xl bg-primary-light text-primary border border-primary/20">
             <Lock className="w-8 h-8" />
           </div>
+          
           <div className="space-y-3">
-            <span className="font-mono text-[10px] text-primary uppercase tracking-[0.25em] font-medium block">Institutional Trust Alliance</span>
-            <h3 className="font-serif text-3xl md:text-5xl text-white font-normal leading-tight">
-              A System Ratified On Secrecy And Absolute Precision.
+            <span className="font-mono text-xs text-primary uppercase tracking-widest font-bold block">
+              Quiety Compliance Alliance
+            </span>
+            <h3 className="font-sans text-3xl md:text-4xl text-brand-blue font-extrabold tracking-tight leading-tight">
+              An ecosystem structured on data hygiene & strict confidentiality.
             </h3>
-            <p className="font-sans text-neutral-400 text-xs md:text-sm font-light leading-relaxed tracking-wide max-w-2xl mx-auto">
-              Our methods diverge from high-frequency algorithms and modern recruitment noise. We operate under strict Swiss privacy guidelines (FINMA aligned criteria) ensuring candidate dossiers never reach central web index matrices. This is the AURA Secrecy System.
+            <p className="font-sans text-neutral-500 text-xs sm:text-sm font-medium leading-relaxed tracking-wide max-w-2xl mx-auto">
+              Our placement protocols diverge entirely from automated web indexing bots and low-integrity scraping procedures. All resume assets submitted are kept isolated from open internet repositories. That is the Quiety difference.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-6 pt-4 font-mono text-[10px] text-neutral-500">
-            <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-primary" /> GDPR DISCREET PROTOCOL
+
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-4 font-mono text-[9px] sm:text-[10px] text-neutral-440 text-neutral-400 font-bold">
+            <span className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 px-3 py-1.5 rounded-full">
+              <Check className="w-3.5 h-3.5 text-primary stroke-[3]" /> GDPR DISCREET
             </span>
-            <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-primary" /> FINMA SECRECY STANDARD
+            <span className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 px-3 py-1.5 rounded-full">
+              <Check className="w-3.5 h-3.5 text-primary stroke-[3]" /> TLS SECURE TRANSMISSION
             </span>
-            <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-primary" /> ISO-PRESTIGE COEFFICIENT
+            <span className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-100 px-3 py-1.5 rounded-full">
+              <Check className="w-3.5 h-3.5 text-primary stroke-[3]" /> MUTUAL NDA COVENANTS
             </span>
           </div>
         </div>
       </section>
 
-      {/* Modular Footer */}
+      {/* Standard Footer */}
       <Footer />
 
-      {/* Customizer Side Chamber */}
+      {/* Customizer Side Panel Drawer */}
       <ClubChamber 
         isOpen={clubChamberOpen}
         onClose={() => setClubChamberOpen(false)}
@@ -193,9 +187,10 @@ export default function App() {
         setVisualTheme={setVisualTheme}
         mockMusicPlaying={mockMusicPlaying}
         setMockMusicPlaying={setMockMusicPlaying}
+        onFilterFromSkills={handleFilterFromSkills}
       />
 
-      {/* Multi-Step Confidential Application Drawer Form */}
+      {/* Candidate Placement Multi-step Overlay Form */}
       {selectedJob && (
         <ApplicationForm 
           selectedJob={selectedJob}

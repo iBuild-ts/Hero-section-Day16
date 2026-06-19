@@ -1,156 +1,466 @@
-import { Play, ShieldCheck, ArrowDown, ChevronRight, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { Search, ChevronDown, Award, Users, Star, BookOpen, Layers } from 'lucide-react';
 
 interface HeroProps {
+  onSearch: (term: string, sector: string) => void;
   onExploreCatalog: () => void;
-  onInitiateAdvisory: () => void;
 }
 
-export default function Hero({ onExploreCatalog, onInitiateAdvisory }: HeroProps) {
+export default function Hero({ onSearch, onExploreCatalog }: HeroProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Interactive mouse tracking states for 3D illustration tilt
+  const [illustrationHover, setIllustrationHover] = useState(false);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, px: 0, py: 0 });
+
+  // Interactive mouse tracking states for ambient section background spotlight
+  const [sectionHover, setSectionHover] = useState(false);
+  const [sectionMouse, setSectionMouse] = useState({ x: 0, y: 0 });
+
+  const handleIllustrationMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const xc = rect.width / 2;
+    const yc = rect.height / 2;
+    
+    // Normalized offset from -1 to 1
+    const dx = (x - xc) / xc;
+    const dy = (y - yc) / yc;
+    
+    setTilt({
+      rx: -dy * 15, // tilt up/down (rotate X)
+      ry: dx * 15,  // tilt right/left (rotate Y)
+      px: dx * 14,  // displacement X
+      py: dy * 14   // displacement Y
+    });
+  };
+
+  const handleIllustrationMouseLeave = () => {
+    setIllustrationHover(false);
+    setTilt({ rx: 0, ry: 0, px: 0, py: 0 });
+  };
+
+  const handleSectionMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setSectionMouse({ x, y });
+    setSectionHover(true);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchTerm, selectedCategory);
+    // Smooth scroll to catalog
+    const el = document.getElementById('catalog');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handlePopularClick = (tag: string) => {
+    setSearchTerm(tag);
+    onSearch(tag, 'all');
+    const el = document.getElementById('catalog');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full overflow-hidden flex flex-col justify-end lg:justify-center items-center pt-32 pb-16 lg:py-0 px-6 md:px-12 bg-black"
+      onMouseMove={handleSectionMouseMove}
+      onMouseLeave={() => setSectionHover(false)}
+      className="relative min-h-screen w-full bg-[#F4F6FA] pt-32 pb-24 overflow-hidden"
     >
-      {/* Absolute background video with luxury vignette layer */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute min-w-full min-h-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover opacity-65 scale-[1.03] filter brightness-75 contrast-110"
-          id="hero-bg-video"
-          src="https://www.image2url.com/r2/default/videos/1781833169026-ce8e9554-3760-4c4c-878f-852407e2ab9c.mp4"
-        />
-        {/* Radical dark overlay and premium gradient vignette to maintain high contrast ratio on texts */}
-        <div className="absolute inset-0 bg-radial-[circle_at_center,transparent_20%,rgba(5,5,5,0.7)_80%]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-[#050505]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
+      {/* Background Soft Gradients (matches Quiety's colorful atmospheric ambient touch) */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Soft centered purple/pink glow exactly like the screenshot */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[60rem] h-[30rem] bg-gradient-to-r from-primary-light/40 via-brand-indigo/10 to-transparent rounded-full blur-[140px]" />
+        
+        {/* Soft golden particle floating in top-left */}
+        <div className="absolute top-32 left-10 text-primary opacity-80 animate-pulse hidden md:block">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <path d="M20 0L24 16L40 20L24 24L20 40L16 24L0 20L16 16L20 0Z" fill="currentColor" opacity="0.3" />
+          </svg>
+        </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        {/* Main Typography & High-End Slogan */}
-        <div className="lg:col-span-8 space-y-8 text-left" id="hero-title-container">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-primary/20 bg-black/60 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary-light">
-              By Invitation Only
-            </span>
-          </div>
+      {/* Dynamic Cursor-Responsive Ambient Spotlight Bloom */}
+      {sectionHover && (
+        <motion.div
+          className="absolute pointer-events-none rounded-full blur-[110px] bg-primary/[0.045] w-[40rem] h-[40rem] z-0"
+          animate={{
+            x: sectionMouse.x - 320,
+            y: sectionMouse.y - 320,
+          }}
+          transition={{ type: "tween", ease: "backOut", duration: 0.6 }}
+        />
+      )}
 
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl tracking-tight leading-[1.05] text-white">
-            Where Elite Mindset <br />
-            <span className="text-gold-gradient italic font-normal font-serif">
-              Meets Global Command
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 text-center flex flex-col items-center">
+        {/* Title Block exactly mirroring Quiety styling */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl space-y-6"
+        >
+          <h1 className="font-sans text-brand-blue text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] !font-sans">
+            Modernizing the_Job <br />
+            <span className="relative inline-block text-brand-blue">
+              Search Experience
+              {/* Custom Underline Brush vector to mimic the underlined logo accent */}
+              <span className="absolute bottom-1 left-0 right-0 h-[4px] bg-primary rounded-full opacity-80" />
             </span>
           </h1>
 
-          <p className="font-sans text-neutral-300 text-sm md:text-lg lg:text-xl font-light tracking-wide max-w-2xl leading-relaxed">
-            AURA orchestrates bespoke placements for elite human intelligence. We connect visionary boards, sovereign wealth trustees, and state-of-the-art AI studios with unparalleled global executive talent at 100% confidentiality tiers.
+          <p className="font-sans text-neutral-500 text-sm sm:text-base md:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
+            Connecting brilliant digital pioneers, deep developers, and product creatives with top-tier modern workspaces. Smooth. Vested. Infinite potential.
           </p>
+        </motion.div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4" id="hero-cta-group">
-            <button
-              onClick={onExploreCatalog}
-              className="px-8 py-4 bg-gold-gradient text-black hover:text-white font-medium text-xs uppercase tracking-widest rounded-full transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_4px_30px_rgba(197,160,89,0.25)] hover:shadow-[0_4px_40px_rgba(197,160,89,0.45)] cursor-pointer flex items-center justify-center gap-3 border border-primary/20"
-              id="hero-explore-catalog-btn"
-            >
-              <span>Explore Selective Catalog</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={onInitiateAdvisory}
-              className="px-8 py-4 bg-black/50 hover:bg-neutral-900 border border-white/10 hover:border-primary/50 text-white font-medium text-xs uppercase tracking-widest rounded-full transition-all duration-500 hover:scale-105 active:scale-95 backdrop-blur-md cursor-pointer flex items-center justify-center gap-3"
-              id="hero-advisory-btn"
-            >
-              <ShieldCheck className="w-4 h-4 text-primary" />
-              <span>Bespoke Board Registry</span>
-            </button>
+        {/* Quiety Styled Rounded Pill Search Form */}
+        <motion.form
+          onSubmit={handleSearchSubmit}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15 }}
+          className="w-full max-w-2xl mt-12 mb-6 bg-white rounded-full p-2.5 shadow-[0_15px_35px_rgba(15,23,42,0.06)] border border-neutral-100 flex flex-col sm:flex-row items-center gap-2 relative z-25"
+          id="hero-rounded-search-pill"
+        >
+          {/* Main search text space */}
+          <div className="flex-1 flex items-center pl-4 w-full">
+            <Search className="w-5 h-5 text-neutral-400 shrink-0 mr-3" />
+            <input
+              type="text"
+              placeholder="etc: Search Your Needs"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-transparent border-none py-2 text-sm text-brand-blue placeholder-neutral-400 focus:outline-none focus:ring-0"
+              id="hero-main-search-input"
+            />
           </div>
-        </div>
 
-        {/* Dynamic Interactive Mini Status Card / Widget on Hero (Representing Real-time Placements & Confidence metrics) */}
-        <div className="lg:col-span-4" id="hero-stats-panel">
-          <div className="glass-card rounded-2xl p-6 md:p-8 border border-white/10 space-y-6 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-radial-[circle_at_top_right,rgba(197,160,89,0.1)_0%,transparent_50%]" />
-            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+          <div className="h-[24px] w-[1px] bg-neutral-200 hidden sm:block" />
+
+          {/* Symmetrical Category Choice Selector */}
+          <div className="relative shrink-0 flex items-center px-4 w-full sm:w-auto mt-2 sm:mt-0">
+            <Layers className="w-4 h-4 text-neutral-400 shrink-0 mr-2 visible sm:hidden lg:inline" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="appearance-none bg-transparent border-none pr-8 py-2 text-xs font-bold text-neutral-700 focus:outline-none cursor-pointer"
+              id="hero-search-category-dropdown"
+            >
+              <option value="all">Web Development</option>
+              <option value="ai-advanced-systems">AI Solutions</option>
+              <option value="luxury-experience-heritage">Creative & Brand</option>
+              <option value="sovereign-wealth-private-capital">Sovereign Fin</option>
+              <option value="aerospace-next-mobility">Deep Tech</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+          </div>
+
+          {/* Bright brand orange circular action search button */}
+          <button
+            type="submit"
+            className="w-full sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-brand-blue hover:scale-105 active:scale-95 text-white flex items-center justify-center transition-all duration-300 py-3 sm:py-0 font-bold shrink-0 cursor-pointer shadow-md shadow-primary/20"
+            id="hero-rounded-button-orange"
+            aria-label="Submit search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+        </motion.form>
+
+        {/* Popular searches keywords strip */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-wrap justify-center items-center gap-3 text-neutral-500 text-xs font-medium relative z-20"
+          id="hero-popular-keywords"
+        >
+          <span className="text-neutral-400">Popular Jobs:</span>
+          {['Designer', 'React Developer', 'Chief of Intelligence', 'Director', 'Systems Specialist'].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => handlePopularClick(tag)}
+              className="bg-white hover:bg-primary-light hover:text-primary border border-neutral-100 text-neutral-600 px-3 py-1.5 rounded-full transition-colors text-xs font-medium cursor-pointer"
+            >
+              {tag}
+            </button>
+          ))}
+        </motion.div>
+
+        {/* Centered Graphic illustration with surrounding interactive bubbles (replicates screenshot) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.35 }}
+          className="relative mt-16 w-full max-w-4xl"
+          id="hero-illustration-container"
+          onMouseMove={handleIllustrationMouseMove}
+          onMouseEnter={() => setIllustrationHover(true)}
+          onMouseLeave={handleIllustrationMouseLeave}
+          style={{ perspective: 1200 }}
+        >
+          {/* Main Character Image Mockup matching screenshot composition */}
+          <motion.div
+            className="relative mx-auto max-w-[580px] aspect-[4/3] rounded-[40px] overflow-visible select-none"
+            animate={{
+              rotateX: illustrationHover ? tilt.rx : 0,
+              rotateY: illustrationHover ? tilt.ry : 0,
+              x: illustrationHover ? tilt.px : 0,
+              y: illustrationHover ? tilt.py : 0,
+            }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            {/* Soft decorative shadow background circle */}
+            <div className="absolute inset-10 rounded-full bg-gradient-to-tr from-primary-light to-brand-indigo/10 blur-3xl opacity-65 -z-10 animate-pulse" />
             
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <div>
-                <span className="block text-[10px] font-mono tracking-widest text-primary uppercase">
-                  Network Integrity
-                </span>
-                <span className="font-serif text-lg text-white font-medium">Metric Suite</span>
-              </div>
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse border border-emerald-400/50" />
-            </div>
+            <motion.img
+              src="/src/assets/images/quiety_hero_character_1781834946907.jpg"
+              alt="Quiety Developer Character Illustration"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-contain pointer-events-none drop-shadow-[0_20px_45px_rgba(15,23,42,0.12)]"
+              id="hero-developer-img"
+              animate={{
+                z: illustrationHover ? 30 : 0
+              }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            />
+          </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <span className="block text-[9px] font-mono text-neutral-400 uppercase tracking-wider">
-                  Sovereign Capital
-                </span>
-                <span className="block font-serif text-xl text-white font-bold tracking-tight">
-                  $6.4B+
-                </span>
-                <span className="block text-[8px] font-mono text-primary/70">Matched</span>
+          {/* Interactive Floating Card 1 (Top Categories widget - bottom-left) */}
+          <motion.div
+            className="absolute bottom-6 left-[-15px] sm:left-4 md:left-[5%] z-20"
+            animate={{
+              y: [0, -12, 0],
+              x: [0, 6, 0],
+              rotate: [0, 1.5, -1.5, 0]
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <motion.div
+              className="glass-card p-4 rounded-2xl w-[170px] sm:w-[210px] text-left shadow-lg cursor-pointer group"
+              animate={{
+                rotateX: illustrationHover ? tilt.rx * 1.4 : 0,
+                rotateY: illustrationHover ? tilt.ry * 1.4 : 0,
+                z: illustrationHover ? 40 : 0
+              }}
+              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">
+                Top Categories
+              </span>
+              <div className="flex gap-1 items-end h-[60px] pb-1 border-b border-neutral-100">
+                <div className="flex-1 bg-amber-400 rounded-sm h-[30%] animate-pulse" />
+                <div className="flex-1 bg-primary rounded-sm h-[80%] animate-pulse" />
+                <div className="flex-1 bg-primary rounded-sm h-[50%]" />
+                <div className="flex-1 bg-brand-indigo rounded-sm h-[90%] animate-pulse" />
+                <div className="flex-1 bg-teal-400 rounded-sm h-[40%]" />
               </div>
-              <div className="space-y-1">
-                <span className="block text-[9px] font-mono text-neutral-400 uppercase tracking-wider">
-                  Retention rate
-                </span>
-                <span className="block font-serif text-xl text-white font-bold tracking-tight">
-                  99.4%
-                </span>
-                <span className="block text-[8px] font-mono text-primary/70">3-Year Index</span>
+              <div className="flex justify-between text-[8px] font-bold text-neutral-400 mt-1.5">
+                <span>Category A</span>
+                <span>Category B</span>
               </div>
-              <div className="space-y-1">
-                <span className="block text-[9px] font-mono text-neutral-400 uppercase tracking-wider">
-                  Mean Package
-                </span>
-                <span className="block font-serif text-xl text-white font-bold tracking-tight">
-                  $580k
-                </span>
-                <span className="block text-[8px] font-mono text-primary/70">Base compensation</span>
-              </div>
-              <div className="space-y-1">
-                <span className="block text-[9px] font-mono text-neutral-400 uppercase tracking-wider">
-                  Active Advisors
-                </span>
-                <span className="block font-serif text-xl text-white font-bold tracking-tight">
-                  14 Board
-                </span>
-                <span className="block text-[8px] font-mono text-primary/70">Members</span>
-              </div>
-            </div>
+            </motion.div>
+          </motion.div>
 
-            <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-2">
-              <div className="flex items-center gap-2">
-                <Play className="w-3 h-3 text-primary" />
-                <span className="font-mono text-[9px] tracking-widest uppercase text-white font-semibold">
-                  Live Placement Broadcast
+          {/* Interactive Floating Card 2 (Pink basketball circle bubble - left) */}
+          <motion.div
+            className="absolute top-[35%] left-[-20px] sm:left-10 md:left-[12%] z-20"
+            animate={{
+              y: [0, 15, -15, 0],
+              x: [0, -8, 8, 0],
+              scale: [1, 1.08, 0.94, 1]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <motion.div
+              className="w-12 h-12 sm:w-14 sm:h-14 bg-[#FF5E89] text-white rounded-full flex items-center justify-center shadow-lg shadow-[#FF5E89]/20 cursor-pointer hover:scale-115 transition-all duration-300"
+              animate={{
+                rotateX: illustrationHover ? tilt.rx * 1.8 : 0,
+                rotateY: illustrationHover ? tilt.ry * 1.8 : 0,
+                z: illustrationHover ? 70 : 0
+              }}
+              transition={{ type: "spring", stiffness: 120, damping: 15 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M6.2 6.2c2.4 2.4 2.4 6.4 0 8.8"/>
+                <path d="M17.8 6.2c-2.4 2.4-2.4 6.4 0 8.8"/>
+                <path d="M2 12h20"/>
+                <path d="M12 2v20"/>
+              </svg>
+            </motion.div>
+          </motion.div>
+
+          {/* Interactive Floating Card 3 (Customer Success widget - right-center) */}
+          <motion.div
+            className="absolute top-[38%] right-[-15px] sm:right-6 md:right-[10%] z-20"
+            animate={{
+              y: [0, -14, 0],
+              x: [0, -6, 0]
+            }}
+            transition={{
+              duration: 5.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <motion.div
+              className="bg-white border border-neutral-100 p-3 sm:p-4 rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.04)] flex items-center gap-3 text-left w-[190px] sm:w-[220px] cursor-pointer"
+              animate={{
+                rotateX: illustrationHover ? tilt.rx * 1.3 : 0,
+                rotateY: illustrationHover ? tilt.ry * 1.3 : 0,
+                z: illustrationHover ? 35 : 0
+              }}
+              transition={{ type: "spring", stiffness: 120, damping: 22 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-brand-indigo shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
+              <div className="truncate text-left">
+                <span className="block text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+                  Customer Success
+                </span>
+                <span className="block text-sm font-bold text-brand-blue">
+                  98.5% Matching
                 </span>
               </div>
-              <p className="font-sans text-[11px] text-neutral-400 leading-relaxed font-light">
-                Secure executive matching in Geneva, Munich & Singapore completed this fiscal week. Next VIP Panel scheduled for July 1.
+            </motion.div>
+          </motion.div>
+
+          {/* Circle Logo Google style top right */}
+          <motion.div
+            className="absolute top-10 right-[-10px] sm:right-[15%] z-20"
+            animate={{
+              y: [0, 8, -8, 0],
+              rotate: [0, 360]
+            }}
+            transition={{
+              y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: 32, repeat: Infinity, ease: "linear" }
+            }}
+          >
+            <motion.div
+              className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border border-neutral-100 cursor-pointer"
+              animate={{
+                rotateX: illustrationHover ? tilt.rx * 1.7 : 0,
+                rotateY: illustrationHover ? tilt.ry * 1.7 : 0,
+                z: illustrationHover ? 60 : 0
+              }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+              </svg>
+            </motion.div>
+          </motion.div>
+
+          {/* Aesthetic team widget - bottom-right */}
+          <motion.div
+            className="absolute bottom-6 right-[-15px] sm:right-6 md:right-[12%] z-20"
+            animate={{
+              y: [0, -8, 0],
+              x: [0, 4, 0]
+            }}
+            transition={{
+              duration: 4.8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <motion.div
+              className="text-left max-w-[190px] sm:max-w-[210px] space-y-2 cursor-pointer bg-white/70 backdrop-blur-md p-3.5 rounded-2xl border border-neutral-100 shadow-sm"
+              animate={{
+                rotateX: illustrationHover ? tilt.rx * 1.2 : 0,
+                rotateY: illustrationHover ? tilt.ry * 1.2 : 0,
+                z: illustrationHover ? 30 : 0
+              }}
+              transition={{ type: "spring", stiffness: 120, damping: 25 }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="flex -space-x-2">
+                <span className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden inline-block font-sans text-[9px] flex items-center justify-center font-bold">JD</span>
+                <span className="w-8 h-8 rounded-full border-2 border-white bg-amber-200 overflow-hidden inline-block font-sans text-[9px] flex items-center justify-center font-bold">AL</span>
+                <span className="w-8 h-8 rounded-full border-2 border-white bg-indigo-200 overflow-hidden inline-block font-sans text-[9px] flex items-center justify-center font-bold">MC</span>
+              </div>
+              <p className="font-sans text-[10px] text-neutral-400 font-semibold leading-relaxed">
+                We work towards ensuring a life free from inequality.
+              </p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Symmetrical Stats Section embedded cleanly with beautiful boxes */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 mt-16 pt-12 border-t border-neutral-100 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          <div className="p-6 bg-white rounded-2xl border border-neutral-50 shadow-md flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-primary shrink-0">
+              <Award className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-sans text-xl font-bold text-brand-blue">
+                99.8% Success
+              </h3>
+              <p className="font-sans text-xs text-neutral-400 font-medium mt-1 leading-normal">
+                Verifiably vetted, customized candidate matching rate.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 bg-white rounded-2xl border border-neutral-50 shadow-md flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-brand-indigo shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-sans text-xl font-bold text-brand-blue">
+                Live Insights
+              </h3>
+              <p className="font-sans text-xs text-neutral-400 font-medium mt-1 leading-normal">
+                Transparent global tracking systems on executive placements.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 bg-white rounded-2xl border border-neutral-50 shadow-md flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+              <Star className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-sans text-xl font-bold text-brand-blue">
+                Elite Retainer
+              </h3>
+              <p className="font-sans text-xs text-neutral-400 font-medium mt-1 leading-normal">
+                Partner network of 500+ rapid-scaling world platforms.
               </p>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Elegant visual down-arrow indicator */}
-      <div 
-        onClick={onExploreCatalog}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 cursor-pointer group scale-75 md:scale-100 z-10"
-        role="button"
-        id="hero-scroll-control"
-      >
-        <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-neutral-500 group-hover:text-primary transition-colors duration-300">
-          Scroll Secure Panel
-        </span>
-        <ArrowDown className="w-4 h-4 text-neutral-600 group-hover:text-primary group-hover:translate-y-1 transition-all duration-300" />
       </div>
     </section>
   );

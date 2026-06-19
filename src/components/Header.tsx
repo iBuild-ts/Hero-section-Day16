@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, ShieldCheck, Globe, Menu, X, Crown } from 'lucide-react';
+import { Menu, X, ArrowUpRight, Search, Briefcase, Compass } from 'lucide-react';
 
 interface HeaderProps {
   activeSection: string;
@@ -10,27 +10,6 @@ interface HeaderProps {
 export default function Header({ activeSection, setActiveSection, onOpenClubRoom }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
-
-  // Update clock every second to represent world time zones
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      // Format to Zurich time as default primary elite HQ
-      const options: Intl.DateTimeFormatOptions = {
-        timeZone: 'Europe/Zurich',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      };
-      setCurrentTime(new Intl.DateTimeFormat('fr-CH', options).format(now));
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,48 +24,42 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
   }, []);
 
   const menuItems = [
-    { label: 'Executive Catalog', id: 'catalog' },
+    { label: 'Home', id: 'hero' },
+    { label: 'Find Jobs', id: 'catalog' },
     { label: 'Our Methodology', id: 'methodology' },
-    { label: 'Bespoke Advisory', id: 'advisory' },
-    { label: 'Institutional Trust', id: 'trust' },
+    { label: 'For Employers', id: 'advisory' },
   ];
 
   return (
     <header
       id="site-header"
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-black/70 backdrop-blur-xl border-b border-white/5 py-4'
-          : 'bg-transparent py-6'
+          ? 'bg-white/90 backdrop-blur-md border-b border-neutral-100 py-3 shadow-sm'
+          : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
-        {/* Elite Brand Logo */}
+        {/* Brand Logo "Quiety" matching screen exactly */}
         <div 
           role="button"
           onClick={() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setActiveSection('hero');
           }}
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-2 cursor-pointer group"
           id="brand-logo"
         >
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-full border border-primary/30 bg-black/50 overflow-hidden">
-            <div className="absolute inset-0 bg-gold-gradient opacity-0 group-hover:opacity-20 transition-opacity duration-700" />
-            <Crown className="w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-500" />
-            <div className="absolute -inset-0.5 rounded-full border border-primary/20 animate-pulse" />
+          {/* Friendly modern logo mark representing double dynamic search rings */}
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold shadow-md shadow-primary/20 group-hover:rotate-12 transition-transform duration-300">
+            <Search className="w-4 h-4 stroke-[3]" />
           </div>
-          <div>
-            <span className="font-serif text-xl tracking-[0.2em] text-white group-hover:text-primary transition-colors duration-300">
-              AURA
-            </span>
-            <span className="block text-[8px] tracking-[0.35em] uppercase text-primary font-mono -mt-1 font-medium">
-              Elite Search
-            </span>
-          </div>
+          <span className="font-sans font-extrabold text-2xl tracking-tight text-brand-blue group-hover:text-primary transition-colors duration-300">
+            Quiety<span className="text-primary font-extrabold">.</span>
+          </span>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Elegant Centered Navigation */}
         <nav className="hidden lg:flex items-center gap-8" id="desktop-nav">
           {menuItems.map((item) => (
             <button
@@ -98,42 +71,32 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
                   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               }}
-              className={`font-sans text-xs uppercase tracking-widest font-medium transition-all duration-300 relative py-2 ${
+              className={`font-sans text-sm font-semibold tracking-wide transition-colors relative py-1 focus:outline-none ${
                 activeSection === item.id 
                   ? 'text-primary' 
-                  : 'text-neutral-400 hover:text-white'
+                  : 'text-neutral-600 hover:text-brand-blue'
               }`}
               id={`nav-item-${item.id}`}
             >
               {item.label}
               {activeSection === item.id && (
-                <span className="absolute bottom-0 left-1/4 right-1/4 h-[1px] bg-gold-gradient" />
+                <span className="absolute bottom-[-2px] left-0 right-0 h-[2.5px] bg-primary rounded-full" />
               )}
             </button>
           ))}
         </nav>
 
-        {/* Prestige System Specs & CTA Indicators */}
-        <div className="hidden md:flex items-center gap-6" id="header-system-specs">
-          {/* Real-time Zurich Clock */}
-          <div className="flex items-center gap-2 font-mono text-[10px] text-neutral-400 border border-white/5 rounded-full px-3 py-1 bg-white/5">
-            <Globe className="w-3 h-3 text-primary animate-spin-slow" />
-            <span>ZURICH HQ • {currentTime}</span>
-          </div>
-
-          <div className="flex items-center gap-2 font-mono text-[10px] text-emerald-400 border border-emerald-500/20 rounded-full px-3 py-1 bg-emerald-500/5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            <Lock className="w-3 h-3 inline -mt-0.5" />
-            <span>AURA PROTOCOL ACTIVE</span>
-          </div>
-
+        {/* High-end clean Entry Call To Action matching Quiety screenshot Button */}
+        <div className="hidden md:flex items-center gap-4" id="header-system-specs">
           <button
             onClick={onOpenClubRoom}
-            className="group px-4 py-2 rounded-full border border-primary/40 bg-black hover:border-primary text-xs uppercase tracking-widest font-mono text-primary hover:text-white hover:bg-gold-gradient transition-all duration-500 flex items-center gap-2 shadow-[0_0_15px_rgba(197,160,89,0.05)] hover:shadow-[0_0_20px_rgba(197,160,89,0.2)]"
+            className="bg-brand-blue hover:bg-primary text-white px-5 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 flex items-center gap-2 font-sans shadow-md hover:shadow-lg hover:shadow-primary/10 hover:scale-105 active:scale-95 cursor-pointer"
             id="ambient-control-btn"
           >
-            <span>Club Chamber</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-primary group-hover:text-black transition-colors" />
+            <span>Get Started</span>
+            <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </div>
           </button>
         </div>
 
@@ -141,18 +104,18 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
         <div className="lg:hidden flex items-center gap-3">
           <button
             onClick={onOpenClubRoom}
-            className="px-3 py-1.5 rounded-full border border-primary/30 text-[10px] uppercase font-mono text-primary"
+            className="bg-brand-blue text-white px-4 py-2 rounded-full text-[10px] font-semibold font-sans hover:bg-primary transition-all"
           >
-            Chamber
+            Get Started
           </button>
           
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-white hover:text-primary transition-colors"
+            className="p-2 text-neutral-700 hover:text-primary transition-colors focus:outline-none"
             aria-label="Toggle menu"
             id="mobile-menu-trigger"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -160,10 +123,10 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
       {/* Mobile Menu Panel */}
       {mobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 top-[73px] bg-black/95 backdrop-blur-2xl z-40 border-t border-white/5 p-8 flex flex-col justify-between animate-fade-in"
+          className="lg:hidden fixed inset-x-0 top-[65px] bottom-0 bg-white/98 backdrop-blur-2xl z-45 border-t border-neutral-100 p-8 flex flex-col justify-between animate-fade-in"
           id="mobile-menu-panel"
         >
-          <div className="flex flex-col gap-6 pt-4">
+          <div className="flex flex-col gap-6 pt-6">
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -175,8 +138,8 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                className={`text-left font-serif text-2xl tracking-widest transition-colors py-2 ${
-                  activeSection === item.id ? 'text-primary' : 'text-neutral-400'
+                className={`text-left font-sans text-lg font-bold tracking-tight transition-colors py-1 ${
+                  activeSection === item.id ? 'text-primary' : 'text-neutral-700 hover:text-primary'
                 }`}
                 id={`mobile-nav-${item.id}`}
               >
@@ -185,23 +148,16 @@ export default function Header({ activeSection, setActiveSection, onOpenClubRoom
             ))}
           </div>
 
-          <div className="border-t border-white/10 pt-6 flex flex-col gap-4 font-mono text-[11px] text-neutral-400">
-            <div className="flex justify-between items-center text-xs">
-              <span>ZURICH NETWORK STATUS</span>
-              <span className="text-emerald-400">ONLINE</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span>SECURITY CERTIFICATE</span>
-              <span className="text-primary font-mono tracking-wider">AURA-SSLv128</span>
-            </div>
+          <div className="border-t border-neutral-100 pt-8 pb-12 flex flex-col gap-4">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenClubRoom();
               }}
-              className="mt-4 w-full py-3 text-center border border-primary text-primary hover:bg-gold-gradient hover:text-black uppercase tracking-widest text-xs font-semibold rounded"
+              className="w-full py-4 bg-primary hover:bg-brand-blue text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 rounded-full"
             >
-              Enter Club Chamber
+              <span>Launch Dashboard Portal</span>
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
         </div>

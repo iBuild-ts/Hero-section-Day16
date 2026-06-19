@@ -1,61 +1,56 @@
-import { Crown, ShieldAlert, FileWarning, HelpCircle } from 'lucide-react';
+import { Crown, ShieldAlert, FileWarning, HelpCircle, Search, Mail, Phone, MapPin, Heart } from 'lucide-react';
 
 export default function Footer() {
   const offices = [
-    { city: 'Zürich', street: 'Bahnhofstrasse 28', zip: '8001 Zürich, SG', tel: '+41 44 212 9000' },
-    { city: 'Paris', street: '14 Rue du Faubourg', zip: '75008 Paris, FR', tel: '+33 1 42 68 8000' },
-    { city: 'Singapore', street: '6 Marina Boulevard', zip: '018985 Singapore, SG', tel: '+65 6832 9000' },
-    { city: 'Geneva', street: '18 Rue du Rhône', zip: '1204 Geneva, CH', tel: '+41 22 312 9000' }
+    { city: 'Zurich Office', street: 'Bahnhofstrasse 28', zip: '8001 Zurich, CH', tel: '+41 44 212 9000' },
+    { city: 'Singapore Office', street: '6 Marina Boulevard', zip: '018985 Singapore, SG', tel: '+65 6832 9000' },
+    { city: 'Silicon Valley Office', street: '530 University Avenue', zip: 'Palo Alto, CA 94301', tel: '+1 650 324 8000' }
   ];
 
   return (
-    <footer className="bg-black border-t border-white/5 pt-20 pb-10 text-left relative overflow-hidden" id="trust">
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/2 rounded-full blur-[120px] pointer-events-none" />
+    <footer className="bg-[#0F172A] pt-20 pb-10 text-left relative overflow-hidden border-t border-neutral-800" id="trust">
+      {/* Decorative clean radial bloom */}
+      <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-primary-dark/5 to-transparent rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-16 relative z-10">
         
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 items-start" id="footer-layout">
           {/* Logo brand info panel */}
-          <div className="lg:col-span-4 space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-primary/30 bg-black/50">
-                <Crown className="w-5 h-5 text-primary" />
+          <div className="lg:col-span-5 space-y-5">
+            <div className="flex items-center gap-2 group cursor-pointer">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                <Search className="w-4 h-4 stroke-[3]" />
               </div>
-              <div>
-                <span className="font-serif text-xl tracking-[0.2em] text-white">
-                  AURA
-                </span>
-                <span className="block text-[8px] tracking-[0.35em] uppercase text-primary font-mono -mt-1 font-semibold">
-                  Elite Search
-                </span>
-              </div>
+              <span className="font-sans font-extrabold text-2xl tracking-tight text-white">
+                Quiety<span className="text-primary font-extrabold">.</span>
+              </span>
             </div>
 
-            <p className="font-sans text-neutral-400 text-xs font-light leading-relaxed tracking-wide">
-              AURA is a worldwide boutique advisory trust specialized in the alignment of sovereign board talent and leading computational intelligence groups. We operate at 100% verified physical and legal secrecy benchmarks.
+            <p className="font-sans text-neutral-400 text-xs sm:text-sm font-medium leading-relaxed max-w-sm">
+              Quiety is a high-fidelity recruitment agency and specialized placement group focusing on bridging premium operators with rapid-scaling tech environments. Transparent, smooth, and absolute.
             </p>
 
-            <div className="flex items-center gap-3 font-mono text-[9px] text-neutral-500 uppercase tracking-widest pt-2">
-              <ShieldAlert className="w-4 h-4 text-primary shrink-0" />
-              <span>Protected under Swiss Secrecy Code</span>
+            <div className="flex items-center gap-2.5 font-mono text-[9px] text-neutral-400 uppercase tracking-wider pt-2 font-bold">
+              <ShieldAlert className="w-4.5 h-4.5 text-primary shrink-0" />
+              <span>GDPR compliant • encrypted candidate data ledger</span>
             </div>
           </div>
 
-          {/* Sactuary locations list */}
-          <div className="lg:col-span-5 space-y-4">
-            <h4 className="font-mono text-[9px] uppercase tracking-widest text-[#aa7c11] font-bold">
-              Global Sanctuaries
+          {/* Locations list */}
+          <div className="lg:col-span-4 space-y-4">
+            <h4 className="font-mono text-[10px] uppercase tracking-wider text-primary font-extrabold">
+              Global Sourcing Offices
             </h4>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {offices.map((office) => (
                 <div key={office.city} className="space-y-1 font-sans text-xs">
-                  <span className="block font-serif text-sm font-semibold text-white">
-                    {office.city} Office
+                  <span className="block font-sans text-xs font-extrabold text-white">
+                    {office.city}
                   </span>
-                  <span className="block text-neutral-400 font-light">{office.street}</span>
-                  <span className="block text-neutral-500 font-mono text-[10px]">{office.zip}</span>
-                  <span className="block text-primary/80 font-mono text-[10px] pt-1">{office.tel}</span>
+                  <span className="block text-neutral-400 font-medium">{office.street}</span>
+                  <span className="block text-neutral-500 font-mono text-[9px]">{office.zip}</span>
+                  <span className="block text-primary font-mono text-[9px] pt-1 font-bold">{office.tel}</span>
                 </div>
               ))}
             </div>
@@ -63,37 +58,37 @@ export default function Footer() {
 
           {/* Quick legal covenants links */}
           <div className="lg:col-span-3 space-y-4 font-sans text-xs">
-            <h4 className="font-mono text-[9px] uppercase tracking-widest text-[#aa7c11] font-bold">
+            <h4 className="font-mono text-[10px] uppercase tracking-wider text-primary font-extrabold">
               Legal Covenants
             </h4>
-            <ul className="space-y-2 text-neutral-400 font-light">
+            <ul className="space-y-2.5 text-neutral-400 font-semibold text-xs">
               <li className="hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
                 <FileWarning className="w-3.5 h-3.5 text-neutral-600" />
-                <span>NDA & Anonymity Clauses</span>
+                <span>NDA & Secrecy Clauses</span>
               </li>
               <li className="hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
                 <HelpCircle className="w-3.5 h-3.5 text-neutral-600" />
-                <span>Sovereign Trust Guidelines</span>
+                <span>Candidate Protection Rules</span>
               </li>
               <li className="hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
-                <span>Switzerland Secrecy Act Compliance</span>
+                <span>Terms of Engagement Contract</span>
               </li>
               <li className="hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
-                <span>SEC/FINMA Sovereign Reporting rules</span>
+                <span>Switzerland Privacy Guidelines</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Divider & Copyright */}
-        <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[9px] text-neutral-500">
-          <div>
-            © {new Date().getFullYear()} AURA EXECUTIVE TRUST INC. ALL CONFIDENTIAL COVENANTS RESERVED WORLDWIDE.
+        <div className="border-t border-neutral-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] text-neutral-500 font-bold">
+          <div className="flex items-center gap-1">
+            © {new Date().getFullYear()} Quiety Sourcing International Inc. All Rights Reserved.
           </div>
-          <div className="flex gap-4 uppercase tracking-widest text-neutral-600">
-            <span>VERIFIED SECURE CONNECTION</span>
+          <div className="flex gap-4 uppercase tracking-wider text-neutral-500">
+            <span>SECURE handshake</span>
             <span className="text-emerald-500">•</span>
-            <span>SYSTEM VERSION v4.18</span>
+            <span>SYSTEM v5.12</span>
           </div>
         </div>
 
