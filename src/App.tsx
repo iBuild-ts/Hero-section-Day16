@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import ClubChamber from './components/ClubChamber';
 import ApplicationForm from './components/ApplicationForm';
 import { Sparkles, ArrowDown, Lock, Check, ShieldCheck, DollarSign, ArrowUp, Zap } from 'lucide-react';
-import { MoneyRainPreloader, MoneyBagSovereignSystem } from './components/MoneyRainEffects';
+import { MoneyRainPreloader, ScrollMoneyParallax } from './components/MoneyRainEffects';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
@@ -30,14 +30,10 @@ export default function App() {
 
   // High fidelity preloader and portfolio bag lock states
   const [isPreloaderActive, setIsPreloaderActive] = useState(true);
-  const [isLockedInBag, setIsLockedInBag] = useState(false);
-  const [isMoneyDropdownOpen, setIsMoneyDropdownOpen] = useState(false);
-  const [earnings, setEarnings] = useState(25000); // Standard initial executive ledger value
 
-  // Active section scroll tracking & money bag detection
+  // Active section scroll tracking & auto-preloader transition on top scroll
   useEffect(() => {
-    let lastScroll = window.scrollY;
-    let didReachBottom = false;
+    let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200;
@@ -55,32 +51,17 @@ export default function App() {
         }
       }
 
-      // Check if user has scrolled close to the bottom
-      const threshold = 60; // px
-      const totalHeight = document.documentElement.scrollHeight;
-      const currentScroll = window.innerHeight + window.scrollY;
-      const reachedBottom = totalHeight - currentScroll <= threshold;
-
-      if (reachedBottom) {
-        setIsMoneyDropdownOpen(true);
-        didReachBottom = true;
+      // If user scrolls back up to the absolute top, seamlessly re-engage preloader
+      if (window.scrollY === 0 && lastScrollY > 10) {
+        setIsPreloaderActive(true);
       }
 
-      // If they reached the bottom and are now scrolling back UP, trigger the Bag Zip Lock!
-      if (didReachBottom && window.scrollY < lastScroll - 30) {
-        setIsLockedInBag(true);
-        setIsMoneyDropdownOpen(false);
-        didReachBottom = false;
-        // Scroll to top seamlessly under the hood to prepare the next state transition
-        window.scrollTo({ top: 0 });
-      }
-
-      lastScroll = window.scrollY;
+      lastScrollY = window.scrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMoneyDropdownOpen]);
+  }, []);
 
   // Update brand colors based on the customizer theme chosen in our sidebar
   useEffect(() => {
@@ -128,21 +109,7 @@ export default function App() {
   if (isPreloaderActive) {
     return (
       <MoneyRainPreloader 
-        onEnterMainApp={() => setIsPreloaderActive(false)}
-        earnings={earnings}
-        setEarnings={setEarnings}
-      />
-    );
-  }
-
-  if (isLockedInBag) {
-    return (
-      <MoneyBagSovereignSystem 
-        onUnlockMainApp={() => {
-          setIsLockedInBag(false);
-          setIsPreloaderActive(false);
-        }}
-        earnings={earnings}
+        onEnter={() => setIsPreloaderActive(false)}
       />
     );
   }
@@ -150,6 +117,9 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#F8FAF1] selection:bg-primary selection:text-white transition-colors duration-500">
       
+      {/* Scroll Parallax Money Effect */}
+      <ScrollMoneyParallax />
+
       {/* Soft atmospheric gradient glow */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 transition-all duration-1000 opacity-55"
@@ -250,40 +220,6 @@ export default function App() {
           selectedJob={selectedJob}
           onClose={() => setSelectedJob(null)}
         />
-      )}
-
-      {/* Interactive Bottom Overflow Money Fountain Drawer */}
-      {isMoneyDropdownOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-[500] bg-neutral-900/95 border-t border-primary/30 backdrop-blur-md py-6 px-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_-15px_40px_rgba(0,0,0,0.3)] select-none">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center animate-bounce">
-              <DollarSign className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-sans text-white text-xs sm:text-sm font-extrabold tracking-wide uppercase">
-                💰 Wealth Inflow Drop-down Activated!
-              </h4>
-              <p className="font-sans text-neutral-400 text-[11px] sm:text-xs">
-                Accruing placement dividend. Scroll back <span className="text-primary font-bold">UP</span> to pack and zip the secure briefcase!
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <span className="block text-[8px] font-mono text-neutral-500 uppercase tracking-widest">Calculated Stake</span>
-              <span className="font-mono text-base sm:text-lg text-emerald-400 font-extrabold">${earnings.toLocaleString()}</span>
-            </div>
-            <button 
-              onClick={() => {
-                setIsLockedInBag(true);
-                setIsMoneyDropdownOpen(false);
-              }}
-              className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-mono font-bold hover:bg-white hover:text-brand-blue transition-all cursor-pointer"
-            >
-              ZIP UP NOW
-            </button>
-          </div>
-        </div>
       )}
 
     </div>

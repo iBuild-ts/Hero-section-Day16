@@ -1,384 +1,318 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { DollarSign, Landmark, Coins, Heart, TrendingUp, Sparkles, Star, ChevronDown, Check, Lock, Unlock, Play, Volume2, VolumeX } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
-// Highly customizable falling bill or coin object
 interface MoneyParticle {
   id: number;
-  x: number;
-  y: number;
-  rotation: number;
+  x: number; // % left
+  y: number; // % top
+  z: number; // 3D depth translation
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
   speed: number;
-  rotationSpeed: number;
+  swingSpeed: number;
+  swingRange: number;
   scale: number;
-  type: 'dollar' | 'coin' | 'euro' | 'gold-bar';
-  depth: number;
-  isClicked: boolean;
-  value: number;
-}
-
-// Sparkle element for physical interactive clicks
-interface Sparkle {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
+  type: 'hundred' | 'gold-coin' | 'thousand';
+  phase: number;
 }
 
 interface PreloaderProps {
-  onEnterMainApp: () => void;
-  earnings: number;
-  setEarnings: React.Dispatch<React.SetStateAction<number>>;
+  onEnter: () => void;
 }
 
-export function MoneyRainPreloader({ onEnterMainApp, earnings, setEarnings }: PreloaderProps) {
+// -------------------------------------------------------------
+// Interactive 3D Raining Money Preloader with Automated Top/Bottom Unzip
+// -------------------------------------------------------------
+export function MoneyRainPreloader({ onEnter }: PreloaderProps) {
   const [particles, setParticles] = useState<MoneyParticle[]>([]);
-  const [sparkles, setSparkles] = useState<Sparkle[]>([]);
-  const [isReadyToEnter, setIsReadyToEnter] = useState(false);
-  const [unzippedPercent, setUnzippedPercent] = useState(0);
+  const [isUnzipping, setIsUnzipping] = useState(false);
+  const [unzipProgress, setUnzipProgress] = useState(0);
 
-  // Generate particles
+  // sound generator play function
+  const playZipSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      // Sweep frequency to simulate zipper teeth sliding open fast
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 1.2);
+      
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
+    } catch (e) {}
+  };
+
   useEffect(() => {
-    const initialParticles: MoneyParticle[] = Array.from({ length: 48 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100, // percentage of viewport width
-      y: Math.random() * -120 - 20, // start above viewport
-      rotation: Math.random() * 360,
-      speed: 2 + Math.random() * 5, // vertical velocity
-      rotationSpeed: -3 + Math.random() * 6,
-      scale: 0.5 + Math.random() * 0.9,
-      type: i % 4 === 0 ? 'dollar' : i % 4 === 1 ? 'coin' : i % 4 === 2 ? 'euro' : 'gold-bar',
-      depth: Math.floor(Math.random() * 3), // layers for mock depth of field blur
-      isClicked: false,
-      value: i % 2 === 0 ? 100 : i % 3 === 0 ? 500 : 1000,
-    }));
-    setParticles(initialParticles);
+    // Populate rich 3D money blocks
+    // Including giant, extreme-foreground bills for easy user selection
+    const items: MoneyParticle[] = Array.from({ length: 42 }).map((_, i) => {
+      // Set every 5th item as extreme-3D "big money" close to the camera lens
+      const isBigMoney = i % 5 === 0;
+      return {
+        id: i,
+        x: Math.random() * 92 + 4,
+        y: Math.random() * 100 - 10,
+        z: isBigMoney ? Math.random() * 200 + 150 : Math.random() * -100, // positive Z is closer
+        rotationX: Math.random() * 360,
+        rotationY: Math.random() * 360,
+        rotationZ: Math.random() * 360,
+        speed: 1.2 + Math.random() * 2.8,
+        swingSpeed: 1 + Math.random() * 2,
+        swingRange: 15 + Math.random() * 30,
+        scale: isBigMoney ? 1.6 + Math.random() * 0.7 : 0.7 + Math.random() * 0.5,
+        type: i % 3 === 0 ? 'hundred' : i % 3 === 1 ? 'gold-coin' : 'thousand',
+        phase: Math.random() * Math.PI * 2,
+      };
+    });
+    setParticles(items);
 
-    // Continuous physics tick
-    let animationFrameId: number;
-    const updatePhysics = () => {
+    let frameId: number;
+    let time = 0;
+    const update = () => {
+      time += 0.012;
       setParticles((prev) =>
         prev.map((p) => {
-          if (p.isClicked) {
-            // Float to target or disappear
-            return {
-              ...p,
-              y: p.y - 12,
-              scale: p.scale * 0.92,
-            };
-          }
-          let nextY = p.y + p.speed * 0.45;
-          let nextDec = p.rotation + p.rotationSpeed;
-          // Loop particles when they fall off screen
-          if (nextY > 110) {
-            nextY = -20;
-          }
+          // Slow passive falling physics with beautiful 3D leaf-swinging motion
+          const nextY = p.y + p.speed * 0.35;
+          const nextRotX = p.rotationX + Math.sin(time * p.swingSpeed + p.phase) * 1.5;
+          const nextRotY = p.rotationY + Math.cos(time * p.swingSpeed + p.phase) * 1.2;
+          const nextRotZ = p.rotationZ + 0.5;
+
           return {
             ...p,
-            y: nextY,
-            rotation: nextDec,
+            y: nextY > 115 ? -25 : nextY,
+            rotationX: nextRotX,
+            rotationY: nextRotY,
+            rotationZ: nextRotZ,
           };
         })
       );
-      animationFrameId = requestAnimationFrame(updatePhysics);
+      frameId = requestAnimationFrame(update);
     };
 
-    animationFrameId = requestAnimationFrame(updatePhysics);
-    return () => cancelAnimationFrame(animationFrameId);
+    frameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frameId);
   }, []);
 
-  const handleParticleClick = (e: React.MouseEvent, p: MoneyParticle) => {
-    e.stopPropagation();
-    if (p.isClicked) return;
+  // When clicking any money piece, trigger the automatic 3D unzip portal!
+  const triggerAutomaticUnzip = () => {
+    if (isUnzipping) return;
+    setIsUnzipping(true);
+    playZipSound();
 
-    setEarnings((prev) => prev + p.value);
-    
-    // Add interactive feedback sparkles
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newSparkles = Array.from({ length: 6 }).map((_, idx) => ({
-      id: Date.now() + idx,
-      x: e.clientX,
-      y: e.clientY,
-      color: p.type === 'dollar' ? '#10B981' : '#F59E0B',
-    }));
-    setSparkles((prev) => [...prev, ...newSparkles].slice(-24));
-
-    setParticles((prev) =>
-      prev.map((item) => (item.id === p.id ? { ...item, isClicked: true } : item))
-    );
+    // Smoothly animate the unzip slide separation progress
+    let start = 0;
+    const interval = setInterval(() => {
+      start += 2.5;
+      if (start >= 100) {
+        clearInterval(interval);
+        onEnter(); // Fire entry
+      }
+      setUnzipProgress(start);
+    }, 16);
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-[#0F172A] flex flex-col items-center justify-center overflow-hidden">
-      {/* Decorative High-End Sovereign Blueprint lines */}
-      <div className="absolute inset-0 bg-[radial-gradient(#1E293B_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-40 pointer-events-none" />
+    <div 
+      onClick={triggerAutomaticUnzip}
+      className="fixed inset-0 z-[1000] bg-[#090D1A] overflow-hidden select-none cursor-pointer" 
+      style={{ perspective: 1400 }}
+    >
+      {/* 3D Splitting Top Curtain Panel */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-1/2 bg-[#0C1222] border-b border-primary/45 z-40 transition-transform duration-100 ease-out origin-top flex items-end justify-center shadow-[0_15px_60px_rgba(0,0,0,0.8)]"
+        style={{
+          transform: `translateY(${-unzipProgress}%) rotateX(${unzipProgress * 0.4}deg)`,
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        {/* Symmetrical Center Zipper Gold Teeth */}
+        <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-90 shadow-lg flex justify-between" />
+      </div>
 
-      {/* Raining Money Particle Field */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
+      {/* 3D Splitting Bottom Curtain Panel */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#0C1222] border-t border-primary/45 z-40 transition-transform duration-100 ease-out origin-bottom flex items-start justify-center shadow-[0_-15px_60px_rgba(0,0,0,0.8)]"
+        style={{
+          transform: `translateY(${unzipProgress}%) rotateX(${-unzipProgress * 0.4}deg)`,
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        {/* Symmetrical Center Zipper Gold Teeth */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-90 shadow-lg" />
+      </div>
+
+      {/* Embedded Ambient Sovereign Background grid behind zipper */}
+      <div className="absolute inset-0 bg-[radial-gradient(#1E293B_2px,transparent_2px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
+
+      {/* Raining Money Interactive 3D Canvas */}
+      <div className="absolute inset-0 z-50 pointer-events-auto" style={{ transformStyle: 'preserve-3d' }}>
         {particles.map((p) => {
-          const depthBlur = p.depth === 0 ? 'blur-[1.5px]' : p.depth === 2 ? 'blur-[0.3px]' : '';
           return (
             <div
               key={p.id}
-              className={`absolute transition-opacity duration-300 pointer-events-auto cursor-pointer ${depthBlur}`}
+              onClick={(e) => {
+                // Ensure individual items can also trigger or propagate safely
+                e.stopPropagation();
+                triggerAutomaticUnzip();
+              }}
+              className="absolute cursor-pointer transition-all duration-300 preserve-3d group"
               style={{
                 left: `${p.x}%`,
                 top: `${p.y}%`,
-                transform: `rotate(${p.rotation}deg) scale(${p.scale})`,
-                zIndex: 20 + p.depth,
-                opacity: p.isClicked ? 0 : 0.85,
+                transform: `translateZ(${p.z}px) rotateX(${p.rotationX}deg) rotateY(${p.rotationY}deg) rotateZ(${p.rotationZ}deg) scale(${p.scale})`,
+                zIndex: Math.floor(p.z + 500),
+                transformStyle: 'preserve-3d',
               }}
-              onClick={(e) => handleParticleClick(e, p)}
             >
-              {p.type === 'dollar' ? (
-                <div className="bg-emerald-600/90 border border-emerald-400/30 px-3 py-1.5 rounded shadow-lg text-white font-mono text-xs flex items-center gap-1 hover:brightness-125 hover:scale-110 active:scale-95 transition-transform">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>100</span>
+              {p.type === 'hundred' && (
+                <div className="relative w-36 h-16 bg-emerald-600/90 border-2 border-emerald-300/60 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex flex-col justify-between p-1.5 text-emerald-100 hover:brightness-125 hover:border-emerald-200 transition-all duration-200 hover:shadow-cyan-400/20 hover:shadow-2xl">
+                  {/* Banknote design detail */}
+                  <div className="flex justify-between items-center text-[7px] font-mono tracking-widest text-emerald-300 uppercase font-extrabold">
+                    <span>QUIETY BANK</span>
+                    <span>$100</span>
+                  </div>
+                  <div className="flex items-center justify-center my-1">
+                    <div className="w-8 h-8 rounded-full border border-emerald-400/30 flex items-center justify-center bg-emerald-800/50">
+                      <DollarSign className="w-4 h-4 text-emerald-300 animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[7px] font-mono font-bold text-emerald-300">
+                    <span>SERIES 2026</span>
+                    <span>ONE HUNDRED DOLLARS</span>
+                  </div>
                 </div>
-              ) : p.type === 'coin' ? (
-                <div className="w-8 h-8 rounded-full bg-amber-500/95 border border-amber-300/30 shadow-lg text-white flex items-center justify-center hover:brightness-125 transition-transform hover:scale-110">
-                  <Coins className="w-4 h-4 text-amber-100" />
+              )}
+
+              {p.type === 'thousand' && (
+                <div className="relative w-40 h-18 bg-brand-blue/90 border-2 border-primary/50 rounded-lg shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex flex-col justify-between p-2 text-primary-light hover:brightness-125 hover:border-primary transition-all duration-200 hover:shadow-primary/30 hover:shadow-2xl">
+                  <div className="flex justify-between items-center text-[7px] font-mono tracking-widest text-primary font-extrabold">
+                    <span>SOVEREIGN STAKE</span>
+                    <span>$1000</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="w-7 h-7 rounded bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                      $
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[6px] font-mono font-bold text-neutral-400 uppercase">
+                    <span>Handshake protocol</span>
+                    <span>SYSTEM VERIFIED</span>
+                  </div>
                 </div>
-              ) : p.type === 'euro' ? (
-                <div className="bg-[#FF5E89]/90 border border-pink-400/30 px-2.5 py-1 rounded-full shadow-lg text-white font-mono text-[10px] flex items-center gap-1 hover:brightness-125 transition-transform hover:scale-110">
-                  <span>€</span>
-                  <span className="font-bold">500</span>
-                </div>
-              ) : (
-                <div className="bg-gradient-to-r from-amber-400 to-yellow-600 border border-amber-200/40 px-3 py-1 rounded shadow-xl text-white font-serif text-[10px] font-bold tracking-widest flex items-center gap-1 hover:scale-115 transition-transform">
-                  <Landmark className="w-3 h-3" />
-                  <span>BAR</span>
+              )}
+
+              {p.type === 'gold-coin' && (
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-300 border-2 border-yellow-200 shadow-[0_10px_20px_rgba(0,0,0,0.3)] flex items-center justify-center text-amber-900 font-extrabold text-sm transition-all hover:scale-115 hover:brightness-110">
+                  <div className="w-9 h-9 rounded-full border border-yellow-300/40 flex items-center justify-center font-mono">
+                    $
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
-
-      {/* Floating Sparkle Feedback Layer */}
-      <div className="absolute inset-0 pointer-events-none z-45">
-        <AnimatePresence>
-          {sparkles.map((sp) => (
-            <motion.div
-              key={sp.id}
-              initial={{ opacity: 1, scale: 0.5, x: sp.x, y: sp.y }}
-              animate={{
-                opacity: 0,
-                scale: 1.5,
-                x: sp.x + (Math.random() * 80 - 40),
-                y: sp.y + (Math.random() * -120 - 40),
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute w-2 h-2 rounded-full z-50 pointer-events-none"
-              style={{ backgroundColor: sp.color }}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Centered Sophisticated Display Board Content */}
-      <div className="relative z-30 max-w-2xl px-6 text-center space-y-8 flex flex-col items-center select-none pointer-events-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="space-y-4"
-        >
-          {/* Sourcing insignia badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-mono font-bold tracking-wider text-primary">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-            <span>SECURE EXECUTIVE SYSTEM INTRO v6.0</span>
-          </div>
-
-          <h1 className="font-sans text-white text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] !font-sans">
-            Secure the Absolute<br />
-            <span className="text-primary tracking-wide relative">
-              Wealth Exchange.
-              <span className="absolute bottom-1.5 left-0 right-0 h-[3px] bg-primary rounded-full" />
-            </span>
-          </h1>
-
-          <p className="font-sans text-neutral-400 text-xs sm:text-sm md:text-base max-w-md mx-auto leading-relaxed">
-            Catch the raining premium cash flows to secure your sign-on bonus! Double-click capital nodes to fill your sovereign placement briefcase.
-          </p>
-        </motion.div>
-
-        {/* Real-time Earnings Meter Board */}
-        <motion.div
-          className="bg-neutral-950/80 border border-neutral-800 backdrop-blur-md rounded-2xl px-8 py-5 text-center min-w-[280px] sm:min-w-[340px] shadow-2xl relative overflow-hidden"
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          <div className="absolute top-0 left-0 bg-primary h-[2px] w-full" />
-          <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest block mb-1">
-            Sign-On Bonus Accrued
-          </span>
-          <div className="text-4xl sm:text-5xl font-mono font-extrabold text-emerald-400 tracking-tight">
-            ${earnings.toLocaleString()}
-          </div>
-          <div className="flex justify-center gap-2 items-center text-[10px] text-neutral-400 font-bold mt-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-            <span>PLACEMENTS SECURE • READY TO UNLOCK</span>
-          </div>
-        </motion.div>
-
-        {/* Portal Entry Slider / Action Trigger Button with glowing loops */}
-        <motion.button
-          onClick={onEnterMainApp}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.96 }}
-          className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full bg-primary hover:bg-white text-white hover:text-brand-blue font-sans text-sm font-bold tracking-wider transition-all duration-300 shadow-xl shadow-primary/20 cursor-pointer overflow-hidden uppercase"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-dark via-primary to-primary-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
-          <span className="relative z-10 flex items-center gap-2.5">
-            <Unlock className="w-4.5 h-4.5 group-hover:rotate-12 transition-transform" />
-            Enter Quiety Sourcing
-          </span>
-        </motion.button>
-
-        <div className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest">
-          Supported by Swiss Sovereign Custody Standards
-        </div>
-      </div>
     </div>
   );
 }
 
-// Global Custom Sound Synthesizer Node
-function playClickBeep(freq: number, type: 'sine' | 'square' | 'triangle' = 'sine', duration: number = 0.15) {
-  try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  } catch (e) {
-    // Silence audio failure gracefully
-  }
-}
+// -------------------------------------------------------------
+// Interactive Scroll-Parallax Falling Money Overlay Component for Landing Top
+// -------------------------------------------------------------
+export function ScrollMoneyParallax() {
+  const [scrollY, setScrollY] = useState(0);
+  const [windowWidth, setWindowWidth] = useState(1200);
 
-// Custom Zipper / Sovereign Money Bag Overlay Component when page is locked or scrolled up
-interface MoneyBagSovereignProps {
-  onUnlockMainApp: () => void;
-  earnings: number;
-}
+  useEffect(() => {
+    // Sync viewport scroll properties
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    setWindowWidth(window.innerWidth);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-export function MoneyBagSovereignSystem({ onUnlockMainApp, earnings }: MoneyBagSovereignProps) {
-  const [zipperPercent, setZipperPercent] = useState(0);
-  const [isZipping, setIsZipping] = useState(false);
-  const [successStatus, setSuccessStatus] = useState(false);
+  // Only render if within scroll range at the top
+  if (scrollY > 550) return null;
 
-  const handleZipClick = () => {
-    playClickBeep(440, 'triangle', 0.2);
-    playClickBeep(660, 'sine', 0.15);
-    setIsZipping(true);
+  // Calculate fading opacity ratio as you scroll away from top
+  const opacity = Math.max(0, 1 - scrollY / 420);
 
-    // Animate zipper track pulling down
-    let currentPct = 0;
-    const interval = setInterval(() => {
-      currentPct += 4;
-      if (currentPct >= 100) {
-        clearInterval(interval);
-        playClickBeep(880, 'sine', 0.35);
-        setSuccessStatus(true);
-        setTimeout(() => {
-          onUnlockMainApp();
-        }, 600);
-      }
-      setZipperPercent(currentPct);
-    }, 16);
-  };
+  // Parallax money blocks
+  const parallaxNodes = [
+    { id: 101, left: 5, bg: 'emerald', initialY: 60, speed: 0.95, scale: 0.9 },
+    { id: 102, left: 16, bg: 'coin', initialY: 150, speed: 0.65, scale: 1.1 },
+    { id: 103, left: 24, bg: 'dark', initialY: 90, speed: 0.8, scale: 0.75 },
+    { id: 104, left: 78, bg: 'emerald', initialY: 120, speed: 1.1, scale: 1.2 },
+    { id: 105, left: 88, bg: 'coin', initialY: 70, speed: 0.7, scale: 1.35 },
+    { id: 106, left: 63, bg: 'dark', initialY: 200, speed: 0.5, scale: 0.8 },
+  ];
 
   return (
-    <div className="fixed inset-0 z-[990] bg-[#0A0F1D]/98 flex flex-col items-center justify-center overflow-hidden p-6">
-      {/* Structural background lines and vault bloom */}
-      <div className="absolute inset-0 bg-[#0F172A] z-0 opacity-40" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+    <div
+      className="absolute top-0 left-0 right-0 h-[600px] pointer-events-none overflow-hidden z-[45]"
+      style={{ opacity }}
+    >
+      {parallaxNodes.map((node) => {
+        // Calculate dynamic vertical coordinate containing normal screen coordinate plus scrolling offset
+        const dynamicY = node.initialY - scrollY * node.speed;
+        const driftRotation = (scrollY * 0.12) * (node.id % 2 === 0 ? 1 : -1);
 
-      <div className="text-center space-y-8 max-w-md w-full relative z-10 flex flex-col items-center">
-        
-        {/* Physical Money Bag Graphical Vector with Dynamic Zipper */}
-        <div className="relative w-64 h-64 bg-slate-900 border border-slate-800 rounded-[50px] shadow-2xl flex flex-col items-center justify-center overflow-hidden group">
-          
-          {/* Symmetrical Sovereign Crest */}
-          <div className="absolute top-6 flex flex-col items-center select-none pointer-events-none">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary mb-1 animate-pulse" />
-            <span className="text-[8px] font-mono tracking-widest text-neutral-500 font-bold uppercase">SECURE HOLDING</span>
+        return (
+          <div
+            key={node.id}
+            className="absolute transition-transform duration-75"
+            style={{
+              left: `${node.left}%`,
+              top: `${dynamicY}px`,
+              transform: `rotate(${driftRotation}deg) scale(${node.scale})`,
+            }}
+          >
+            {node.bg === 'emerald' ? (
+              <div className="w-28 h-12 bg-emerald-600/35 border border-emerald-400/20 rounded shadow-md flex flex-col justify-between p-1 text-emerald-100 font-mono text-[8px] opacity-75">
+                <div className="flex justify-between font-bold">
+                  <span>QUIETY</span>
+                  <span>100</span>
+                </div>
+                <div className="text-center font-bold text-[10px] text-emerald-300">
+                  $
+                </div>
+              </div>
+            ) : node.bg === 'coin' ? (
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600/30 to-yellow-300/30 border border-yellow-200/20 shadow-md flex items-center justify-center text-amber-300 font-extrabold text-[10px] opacity-80">
+                $
+              </div>
+            ) : (
+              <div className="w-32 h-14 bg-brand-blue/30 border border-primary/20 rounded shadow-md flex flex-col justify-between p-1 text-[7px] text-primary opacity-70">
+                <div className="flex justify-between font-bold">
+                  <span>DIVIDEND</span>
+                  <span>1000</span>
+                </div>
+                <div className="text-center font-bold font-mono text-xs">
+                  $
+                </div>
+              </div>
+            )}
           </div>
-
-          <DollarSign className="w-16 h-16 text-primary animate-pulse select-none mb-2" />
-          
-          <div className="text-center select-none pointer-events-none">
-            <span className="block text-[10px] text-neutral-400 font-mono font-bold tracking-widest uppercase">Zipped Valuation</span>
-            <span className="block text-2xl font-mono text-emerald-400 font-extrabold pt-0.5">
-              ${earnings.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Zipper Line overlaying the center of the wallet */}
-          <div className="absolute bottom-10 left-6 right-6 h-[8px] bg-slate-950 rounded-full border border-slate-800 overflow-hidden flex items-center">
-            {/* Filled zippered track */}
-            <motion.div
-              className="h-full bg-primary"
-              style={{ width: `${zipperPercent}%` }}
-            />
-          </div>
-
-          <div className="absolute bottom-2 text-[8px] font-mono text-neutral-500 uppercase tracking-widest">
-            QUIETY v5.12 SECURITY BAG
-          </div>
-        </div>
-
-        {/* Instructions and Header */}
-        <div className="space-y-3">
-          <h2 className="font-sans text-white text-3xl font-extrabold tracking-tight">
-            Your Wealth is Secured
-          </h2>
-          <p className="font-sans text-neutral-400 text-xs leading-relaxed max-w-sm">
-            The database portfolio has been compiled and safely packed inside your sovereign executive briefcase. Drag or click the zipper to decode.
-          </p>
-        </div>
-
-        {/* High-fidelity un-zipping interaction trigger */}
-        <motion.button
-          onClick={handleZipClick}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative inline-flex items-center gap-3 bg-gradient-to-r from-primary to-primary-dark text-white font-mono text-xs font-bold tracking-widest px-8 py-4 rounded-full shadow-lg cursor-pointer max-w-xs w-full justify-center group overflow-hidden"
-          disabled={isZipping}
-        >
-          {successStatus ? (
-            <span className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-white stroke-[3] animate-bounce" />
-              UNLOCKED & DECODED
-            </span>
-          ) : (
-            <span className="flex items-center gap-2.5">
-              <Play className="w-4 h-4 fill-white text-white group-hover:scale-110 transition-transform" />
-              PULL ZIP TO DECODE & ENTER
-            </span>
-          )}
-        </motion.button>
-
-        <div className="flex gap-4 uppercase font-mono text-[9px] text-neutral-600 tracking-wider">
-          <span>PORTFOLIO v5.1</span>
-          <span>•</span>
-          <span>DISCREET</span>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
